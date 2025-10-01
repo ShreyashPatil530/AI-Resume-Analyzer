@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis History - AI Resume Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Analysis History</h1>
+            <p>View your past resume analyses</p>
+        </header>
+
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <div class="navigation">
+            <a href="{{ url_for('index') }}" class="btn-back">← Back to Analyzer</a>
+        </div>
+
+        <div class="history-section">
+            {% if results %}
+                <div class="history-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Filename</th>
+                                <th>Skills Found</th>
+                                <th>Match Score</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                            <tr>
+                                <td>{{ result['id'] }}</td>
+                                <td class="filename">{{ result['filename'] }}</td>
+                                <td>
+                                    <div class="skills-preview">
+                                        {% set skills = result['skills'].split(',')[:5] %}
+                                        {% for skill in skills %}
+                                            <span class="skill-tag-small">{{ skill }}</span>
+                                        {% endfor %}
+                                        {% if result['skills'].split(',')|length > 5 %}
+                                            <span class="more-skills">+{{ result['skills'].split(',')|length - 5 }} more</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="match-badge {{ 'high-match' if result['match_percentage'] > 70 else 'medium-match' if result['match_percentage'] > 50 else 'low-match' }}">
+                                        {{ result['match_percentage']|round(2) }}%
+                                    </span>
+                                </td>
+                                <td>{{ result['analysis_date'] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="no-results">
+                    <p>No analysis history found.</p>
+                    <a href="{{ url_for('index') }}" class="btn-analyze">Analyze Your First Resume</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <footer>
+        <p>AI Resume Analyzer &copy; 2025 Design SP</p>
+    </footer>
+</body>
+</html>

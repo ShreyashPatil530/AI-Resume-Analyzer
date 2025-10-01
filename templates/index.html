@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 AI-Powered Resume Analyzer</h1>
+            <p>Upload your resume and compare it with a job description</p>
+        </header>
+
+        <div class="navigation">
+            <a href="{{ url_for('history') }}" class="btn-history">📜 View History</a>
+        </div>
+
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" class="upload-form" id="uploadForm">
+            <div class="form-group">
+                <label for="resume">Upload Resume (PDF or DOCX):</label>
+                <input type="file" id="resume" name="resume" accept=".pdf,.docx" required>
+                <small>Maximum file size: 16MB</small>
+            </div>
+
+            <div class="form-group">
+                <label for="job_description">Job Description (Optional):</label>
+                <textarea id="job_description" name="job_description" rows="8" 
+                         placeholder="Paste the job description here to see how well your resume matches..."></textarea>
+                <small>Get a match percentage by adding a job description</small>
+            </div>
+
+            <button type="submit" class="btn-analyze" id="analyzeBtn">
+                <span id="btnText">🔍 Analyze Resume</span>
+                <span id="btnLoader" style="display: none;">⏳ Analyzing...</span>
+            </button>
+        </form>
+
+        {% if results %}
+        <div class="results-section">
+            <h2>📊 Analysis Results</h2>
+            
+            <div class="result-filename">
+                <strong>File:</strong> {{ results.filename }}
+            </div>
+
+            {% if results.match_percentage > 0 %}
+            <div class="match-score">
+                <div class="score-card">
+                    <h3>Match Score</h3>
+                    <div class="percentage {{ 'high-match' if results.match_percentage > 70 else 'medium-match' if results.match_percentage > 50 else 'low-match' }}">
+                        {{ results.match_percentage }}%
+                    </div>
+                    <p class="score-description">
+                        {% if results.match_percentage > 70 %}
+                            Excellent match! Your resume aligns well with the job description.
+                        {% elif results.match_percentage > 50 %}
+                            Good match! Consider adding more relevant keywords.
+                        {% else %}
+                            Low match. Review the job description and add relevant skills.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="skills-section">
+                <h3>💡 Extracted Skills</h3>
+                {% if results.skills %}
+                <div class="skills-list">
+                    {% for skill in results.skills %}
+                        <span class="skill-tag">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+                <p class="skills-count">✅ {{ results.skills|length }} skills found in your resume</p>
+                {% else %}
+                <p class="no-skills">No skills detected. Make sure your resume includes technical skills and keywords.</p>
+                {% endif %}
+            </div>
+
+            <div class="text-preview">
+                <h3>📄 Resume Text Preview</h3>
+                <div class="preview-content">
+                    {{ results.resume_text_preview }}
+                </div>
+            </div>
+
+            <div class="actions">
+                <button onclick="window.location.href='/'" class="btn-new">🔄 Analyze Another Resume</button>
+                <a href="{{ url_for('history') }}" class="btn-history">📜 View History</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <footer>
+        <p>AI Resume Analyzer &copy; 2025 Design SP | <a href="https://github.com/yourusername/ai-resume-analyzer" target="_blank">GitHub</a></p>
+    </footer>
+
+    <script>
+        // Show loading state on form submit
+        document.getElementById('uploadForm').addEventListener('submit', function() {
+            document.getElementById('btnText').style.display = 'none';
+            document.getElementById('btnLoader').style.display = 'inline';
+            document.getElementById('analyzeBtn').disabled = true;
+        });
+
+        // File size validation
+        document.getElementById('resume').addEventListener('change', function() {
+            const fileSize = this.files[0].size;
+            const maxSize = 16 * 1024 * 1024; // 16MB
+            
+            if (fileSize > maxSize) {
+                alert('File size exceeds 16MB. Please upload a smaller file.');
+                this.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
